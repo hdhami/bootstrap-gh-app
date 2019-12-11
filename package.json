@@ -1,0 +1,28 @@
+{
+  "name": "bootstrap-gh-app",
+  "version": "1.0.0",
+  "description": "This repo bootstraps the templates for github app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hdhami/bootstrap-gh-app.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hdhami/bootstrap-gh-app/issues"
+  },
+  "homepage": "https://github.com/hdhami/bootstrap-gh-app#readme",
+  "dependencies": {
+    "@octokit/app": "^4.1.0",
+    "@octokit/request": "^5.3.1",
+    "dotenv": "^8.2.0",
+    "express": "^4.16.4",
+    "fetch": "^1.1.0",
+    "smee-client": "^1.1.0"
+  }
+}
