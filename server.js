@@ -1,39 +1,41 @@
 const express = require("express");
 const { fetchUrl } = require("fetch");
 const { App } = require("@octokit/app");
-const { request } = require("@octokit/request");
+const fs = require("fs");
 require("dotenv").config();
 
 const PORT = 3000;
 const APP_ID = process.env.APP_ID;
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
+//const PRIVATE_KEY = fs.readFileSync("./test-bot-gh-3.2019-12-11.private-key.pem").toString();
+const PRIVATE_KEY = process.env.PRIVATE_KEY.replace(/\\n/g, "\n");
 const app = new App({ id: APP_ID, privateKey: PRIVATE_KEY });
-//console.log("========", APP_ID, PRIVATE_KEY);
 const jwt = app.getSignedJsonWebToken();
-console.log("========", jwt);
 let installationAccessToken = "";
-const authenticateApp = async () => {
-  const { data } = await request(
-    "GET /repos/hdhami/bootstrap-gh-app/installation",
+const authenticateApp = async app => {
+  console.log("=======jwt=======", jwt);
+
+  fetchUrl(
+    "https://api.github.com/app/installations",
     {
-      owner: "hdhami",
-      repo: "bootstrap-gh-app",
+      owner: "@hdhami",
+      repo: "test-bot-gh-3",
       headers: {
         authorization: `Bearer ${jwt}`,
         accept: "application/vnd.github.machine-man-preview+json"
       }
+    },
+    async (error, meta, body) => {
+      const installationId = JSON.parse(body)[0].id;
+      console.log("=======installationId===========", installationId);
+      installationAccessToken = await app.getInstallationAccessToken({
+        installationId
+      });
+      console.log("===installationAccessToken===", installationAccessToken);
     }
   );
-
-  // contains the installation id necessary to authenticate as an installation
-  const installationId = data.id;
-
-  installationAccessToken = await app.getInstallationAccessToken({
-    installationId
-  });
 };
 
-authenticateApp();
+authenticateApp(app);
 
 const SmeeClient = require("smee-client");
 
@@ -65,6 +67,9 @@ server.use("/ghevents", router);
 router.post("/", (req, res, next) => {
   const is_pull_req = req.headers["x-github-event"] === "pull_request";
   const pr_url = is_pull_req ? req.body.pull_request.comments_url : "";
+  console.log("======pr-url", pr_url);
+  console.log("=======token=======", installationAccessToken);
+
   const options = {
     headers: {
       authorization: `token ${installationAccessToken}`,
@@ -79,6 +84,7 @@ router.post("/", (req, res, next) => {
   if (is_pull_req) {
     console.log("=====fetching=======");
     fetchUrl(pr_url, options, (error, meta, body) => {
+      console.log(232324);
       console.log(body.toString());
     });
   }
